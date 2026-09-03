@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          calories: number | null
+          carbs_g: number | null
+          category: Database["public"]["Enums"]["recipe_category"]
+          created_at: string
+          dish_type: string | null
+          fat_g: number | null
+          fiber_g: number | null
+          id: string
+          image_url: string | null
+          ingredients: Json
+          instructions: Json
+          notes: string | null
+          nutrition_source: string | null
+          prep_minutes: number | null
+          protein_g: number | null
+          protein_per_100kcal: number | null
+          servings: number
+          source_url: string | null
+          title: string
+          total_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs_g?: number | null
+          category?: Database["public"]["Enums"]["recipe_category"]
+          created_at?: string
+          dish_type?: string | null
+          fat_g?: number | null
+          fiber_g?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: Json
+          notes?: string | null
+          nutrition_source?: string | null
+          prep_minutes?: number | null
+          protein_g?: number | null
+          protein_per_100kcal?: number | null
+          servings?: number
+          source_url?: string | null
+          title: string
+          total_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs_g?: number | null
+          category?: Database["public"]["Enums"]["recipe_category"]
+          created_at?: string
+          dish_type?: string | null
+          fat_g?: number | null
+          fiber_g?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: Json
+          notes?: string | null
+          nutrition_source?: string | null
+          prep_minutes?: number | null
+          protein_g?: number | null
+          protein_per_100kcal?: number | null
+          servings?: number
+          source_url?: string | null
+          title?: string
+          total_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +118,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      recipe_category: "breakfast" | "main" | "side" | "snack"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +245,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      recipe_category: ["breakfast", "main", "side", "snack"],
+    },
   },
 } as const
