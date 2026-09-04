@@ -39,7 +39,10 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     navigate({ to: "/recipes" });
   }
 
@@ -55,7 +58,10 @@ function AuthPage() {
       },
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     if (data.session) {
       navigate({ to: "/recipes" });
     } else {
@@ -70,7 +76,8 @@ function AuthPage() {
     });
     if (result.error) {
       setBusy(false);
-      return toast.error("Google sign-in failed. Try again.");
+      toast.error("Google sign-in failed. Try again.");
+      return;
     }
     if (result.redirected) return;
     setBusy(false);
