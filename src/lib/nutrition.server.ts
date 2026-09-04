@@ -180,9 +180,10 @@ const NUTRIENT_IDS: Record<string, keyof Macros> = {
 
 async function usdaPer100g(food: string): Promise<Per100g | null> {
   const apiKey = process.env["USDA_API_KEY"] ?? "DEMO_KEY";
+  // NOTE: dataType must keep literal commas — USDA rejects %2C separators with a 400.
   const url = `${USDA_SEARCH}?api_key=${encodeURIComponent(apiKey)}&query=${encodeURIComponent(
     food,
-  )}&pageSize=1&dataType=${encodeURIComponent("Foundation,SR Legacy,Survey (FNDDS)")}`;
+  )}&pageSize=1&dataType=Foundation,SR%20Legacy,Survey%20%28FNDDS%29`;
 
   let res: Response;
   try {
