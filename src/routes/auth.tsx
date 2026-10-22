@@ -16,6 +16,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to your private macro-aware recipe box for endurance training." },
       { property: "og:title", content: "Sign in — Fuel Lab" },
       { property: "og:description", content: "Sign in to your private macro-aware recipe box." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,
