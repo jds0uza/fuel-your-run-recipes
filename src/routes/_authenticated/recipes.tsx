@@ -40,6 +40,8 @@ export const Route = createFileRoute("/_authenticated/recipes")({
       },
       { property: "og:title", content: "My recipe box — Fuel Lab" },
       { property: "og:description", content: "Saved recipes with per-serving macros for training." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: RecipesPage,

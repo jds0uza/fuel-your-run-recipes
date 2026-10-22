@@ -3,6 +3,7 @@ import { Clock, Link2, Sparkles, Utensils } from "lucide-react";
 
 import heroImage from "@/assets/fuel-hero.jpg";
 import { Button } from "@/components/ui/button";
+import { DailyGoals } from "@/components/recipe/DailyGoals";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -14,6 +15,8 @@ export const Route = createFileRoute("/")({
           "Paste a recipe link and get protein, carbs and protein-per-calorie per serving, filed under breakfast, mains, sides or snacks.",
       },
       { property: "og:title", content: "Fuel Lab — Macro-aware recipe box for endurance runners" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content:
@@ -33,6 +36,8 @@ function Landing() {
           <Link to="/auth">Sign in</Link>
         </Button>
       </header>
+
+      <DailyGoals />
 
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-6 lg:grid-cols-2 lg:pb-24">
         <div>
