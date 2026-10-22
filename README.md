@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Fuel Your Run Recipes
+
+I am a marathon runner and need to eat enough for my endurance training. I don't want to always be calculating the protein and carb grams each time I eat so I'd like to be aware of these amounts when I pick recipes. I'd like to be able to save these recipes by categories (main, sides, breakfast, snacks). 
+
+Scrape recipe web pages from submitted URLs. Extract ingredients, preparation time, and dish type, and integrate a nutrition model or USDA API to estimate macronutrient profiles (specifically protein-per-calorie ratio).
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/38049132-8cc6-47d3-94d2-6e19ff4ac6d5).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
