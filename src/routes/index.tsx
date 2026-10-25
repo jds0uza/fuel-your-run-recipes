@@ -60,6 +60,9 @@ function Landing() {
             <Button asChild size="lg" variant="secondary">
               <Link to="/recipes">Open my recipes</Link>
             </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/demo">Try the 2-minute demo</Link>
+            </Button>
           </div>
         </div>
 
