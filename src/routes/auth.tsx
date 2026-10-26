@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Sparkles, UserCheck, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,17 +74,22 @@ function AuthPage() {
 
   async function google() {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setBusy(false);
+        toast.error("Google sign-in is unavailable on this domain. Use 'Sign in as Demo Reviewer' above for instant access.");
+        return;
+      }
+      if (result.redirected) return;
       setBusy(false);
-      toast.error("Google sign-in failed. Try again.");
-      return;
+      navigate({ to: "/recipes" });
+    } catch {
+      setBusy(false);
+      toast.error("Google sign-in is unavailable on this domain. Use 'Sign in as Demo Reviewer' above for instant access.");
     }
-    if (result.redirected) return;
-    setBusy(false);
-    navigate({ to: "/recipes" });
   }
 
   return (
@@ -92,6 +98,30 @@ function AuthPage() {
         FUEL LAB
       </Link>
       <div className="mt-6 w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-card">
+        {/* Reviewer / Demo Access Box */}
+        <div className="mb-6 rounded-lg border border-primary/40 bg-primary/10 p-4 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+            <Sparkles className="size-3.5" />
+            Instant Demo Access
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Exploring Fuel Lab? Skip login to test the macro calculator, pre-analyzed recipes, and demo box.
+          </p>
+          <Button
+            type="button"
+            className="mt-3.5 w-full gap-2 font-medium shadow-sm"
+            onClick={() => navigate({ to: "/demo" })}
+          >
+            <UserCheck className="size-4" />
+            Sign in as Demo Reviewer
+            <ArrowRight className="size-3.5 ml-auto opacity-70" />
+          </Button>
+        </div>
+
+        <div className="mb-4 flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
+          <span className="h-px flex-1 bg-border" /> or use an account <span className="h-px flex-1 bg-border" />
+        </div>
+
         <Tabs defaultValue="signin">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign in</TabsTrigger>
