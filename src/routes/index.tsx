@@ -31,7 +31,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const [activeDemoId, setActiveDemoId] = useState(DEMO_RECIPES[1].id); // Salmon Quinoa by default
+  const [activeDemoId, setActiveDemoId] = useState(DEMO_RECIPES[1]?.id ?? DEMO_RECIPES[0]?.id ?? ""); // Salmon Quinoa by default
   const activeRecipe = DEMO_RECIPES.find((r) => r.id === activeDemoId) ?? DEMO_RECIPES[0];
 
   return (
@@ -150,14 +150,14 @@ function Landing() {
                   <span className="block text-xs uppercase tracking-wider opacity-75">
                     {recipe.category}
                   </span>
-                  <span>{recipe.title.split(" with ")[0].split(",")[0]}</span>
+                  <span>{recipe.title.split(" with ")[0]?.split(",")[0] ?? recipe.title}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Active Recipe Display Card */}
-          <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-card transition-all">
+          {activeRecipe && <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-card transition-all">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
               <div className="flex-1 space-y-4">
                 <div className="flex flex-wrap items-center gap-2.5">
@@ -237,7 +237,7 @@ function Landing() {
                 </Button>
               </div>
             </div>
-          </div>
+          </div>}
         </div>
       </section>
 
