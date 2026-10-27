@@ -4,17 +4,38 @@ import { z } from "zod";
 /**
  * Public (no-login) version of the recipe analysis used by the /demo
  * walkthrough. It runs the same scrape → parse → macro pipeline as the
- * signed-in flow but never touches the database.
+ * signed-in flow but never touches recipe data.
  *
- * Note: this endpoint is callable by anyone once published. The demo page
- * caps each browser at a few analyses, but that cap is client-side and
- * honor-system — acceptable for a portfolio demo, not a hard quota.
+ * Guest usage is capped server-side: a global daily counter in the
+ * demo_usage table (service-role only) refuses analyses once the cap is
+ * hit, so clearing browser storage can't reset it. The cap protects the
+ * shared USDA/Firecrawl/AI quota from guest traffic.
  */
+export const DEMO_DAILY_CAP = 25;
+
+export class DemoLimitError extends Error {
+  constructor() {
+    super("Daily demo limit reached — the live analysis resets tomorrow. Browse the samples below, or sign up to analyze without limits.");
+    this.name = "DemoLimitError";
+  }
+}
 export const analyzeDemoRecipeUrl = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z.object({ url: z.string().url().max(2000) }).parse(input),
   )
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: usage, error: usageError } = await supabaseAdmin.rpc("increment_demo_usage", {
+      p_date: today,
+      p_cap: DEMO_DAILY_CAP,
+    });
+    if (usageError) {
+      console.error("[demo] usage counter failed", usageError);
+      throw new Error("The demo is temporarily unavailable — please try again later.");
+    }
+    if (usage === -1) throw new DemoLimitError();
+
     const { scrapeRecipePage, parseRecipe, estimateMacros, proteinPer100kcal } = await import(
       "./nutrition.server"
     );

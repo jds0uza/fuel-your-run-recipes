@@ -43,8 +43,7 @@ const LABELS: Record<Category, string> = {
 };
 
 const BOX_KEY = "fuel-lab-demo-box";
-const ANALYSES_KEY = "fuel-lab-demo-analyses";
-const MAX_LIVE_ANALYSES = 3;
+const LIMIT_MESSAGE = "Daily demo limit reached";
 
 type Draft = Awaited<ReturnType<typeof analyzeDemoRecipeUrl>>["draft"];
 
@@ -61,7 +60,7 @@ function DemoPage() {
   const analyze = useServerFn(analyzeDemoRecipeUrl);
 
   const [box, setBox] = useState<Recipe[]>([]);
-  const [analysesUsed, setAnalysesUsed] = useState(0);
+  const [limitReached, setLimitReached] = useState(false);
   const [filter, setFilter] = useState<Category | "all">("all");
   const [url, setUrl] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -71,7 +70,6 @@ function DemoPage() {
     try {
       const saved = window.localStorage.getItem(BOX_KEY);
       if (saved) setBox(JSON.parse(saved) as Recipe[]);
-      setAnalysesUsed(Number(window.localStorage.getItem(ANALYSES_KEY) ?? "0") || 0);
     } catch {
       // Corrupted or unavailable storage — start with an empty demo box.
     }
@@ -91,18 +89,17 @@ function DemoPage() {
     onSuccess: (result) => {
       setDraft(result.draft);
       setCoverage(result.coverage);
-      const used = analysesUsed + 1;
-      setAnalysesUsed(used);
-      try {
-        window.localStorage.setItem(ANALYSES_KEY, String(used));
-      } catch {
-        // Non-critical: the counter just resets next visit.
+    },
+    onError: (error: Error) => {
+      if (error.message.includes(LIMIT_MESSAGE)) {
+        setLimitReached(true);
+        toast.info("Today's live demo analyses are all used up.");
+      } else {
+        toast.error(error.message || "Couldn't read that recipe page.");
       }
     },
-    onError: (error: Error) => toast.error(error.message || "Couldn't read that recipe page."),
   });
 
-  const analysesLeft = Math.max(0, MAX_LIVE_ANALYSES - analysesUsed);
   const filteredBox = box.filter((r) => filter === "all" || r.category === filter);
 
   return (
@@ -217,20 +214,17 @@ function DemoPage() {
           <h2 className="text-2xl">Try it live</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Paste a real recipe URL and watch the full pipeline run.{" "}
-            {analysesLeft > 0 ? (
-              <>
-                You have <strong>{analysesLeft}</strong> of {MAX_LIVE_ANALYSES} live analyses left in
-                this browser.
-              </>
+            {limitReached ? (
+              <>Today's live analyses are all used up — the demo resets tomorrow.</>
             ) : (
-              <>You've used your {MAX_LIVE_ANALYSES} live analyses — sign up to keep going.</>
+              <>Live analyses are limited each day to keep the demo fast for everyone.</>
             )}
           </p>
           <form
             className="mt-4 flex flex-col gap-3 sm:flex-row"
             onSubmit={(e) => {
               e.preventDefault();
-              if (url.trim() && analysesLeft > 0) analyzing.mutate(url.trim());
+              if (url.trim() && !limitReached) analyzing.mutate(url.trim());
             }}
           >
             <Input
@@ -240,9 +234,9 @@ function DemoPage() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="flex-1"
-              disabled={analysesLeft === 0}
+              disabled={limitReached}
             />
-            <Button type="submit" disabled={analyzing.isPending || analysesLeft === 0}>
+            <Button type="submit" disabled={analyzing.isPending || limitReached}>
               {analyzing.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing
