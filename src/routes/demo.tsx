@@ -214,20 +214,17 @@ function DemoPage() {
           <h2 className="text-2xl">Try it live</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Paste a real recipe URL and watch the full pipeline run.{" "}
-            {analysesLeft > 0 ? (
-              <>
-                You have <strong>{analysesLeft}</strong> of {MAX_LIVE_ANALYSES} live analyses left in
-                this browser.
-              </>
+            {limitReached ? (
+              <>Today's live analyses are all used up — the demo resets tomorrow.</>
             ) : (
-              <>You've used your {MAX_LIVE_ANALYSES} live analyses — sign up to keep going.</>
+              <>Live analyses are limited each day to keep the demo fast for everyone.</>
             )}
           </p>
           <form
             className="mt-4 flex flex-col gap-3 sm:flex-row"
             onSubmit={(e) => {
               e.preventDefault();
-              if (url.trim() && analysesLeft > 0) analyzing.mutate(url.trim());
+              if (url.trim() && !limitReached) analyzing.mutate(url.trim());
             }}
           >
             <Input
@@ -237,9 +234,9 @@ function DemoPage() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="flex-1"
-              disabled={analysesLeft === 0}
+              disabled={limitReached}
             />
-            <Button type="submit" disabled={analyzing.isPending || analysesLeft === 0}>
+            <Button type="submit" disabled={analyzing.isPending || limitReached}>
               {analyzing.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing
