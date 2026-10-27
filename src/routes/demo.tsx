@@ -89,18 +89,17 @@ function DemoPage() {
     onSuccess: (result) => {
       setDraft(result.draft);
       setCoverage(result.coverage);
-      const used = analysesUsed + 1;
-      setAnalysesUsed(used);
-      try {
-        window.localStorage.setItem(ANALYSES_KEY, String(used));
-      } catch {
-        // Non-critical: the counter just resets next visit.
+    },
+    onError: (error: Error) => {
+      if (error.message.includes(LIMIT_MESSAGE)) {
+        setLimitReached(true);
+        toast.info("Today's live demo analyses are all used up.");
+      } else {
+        toast.error(error.message || "Couldn't read that recipe page.");
       }
     },
-    onError: (error: Error) => toast.error(error.message || "Couldn't read that recipe page."),
   });
 
-  const analysesLeft = Math.max(0, MAX_LIVE_ANALYSES - analysesUsed);
   const filteredBox = box.filter((r) => filter === "all" || r.category === filter);
 
   return (
