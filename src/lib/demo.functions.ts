@@ -24,6 +24,18 @@ export const analyzeDemoRecipeUrl = createServerFn({ method: "POST" })
     z.object({ url: z.string().url().max(2000) }).parse(input),
   )
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: usage, error: usageError } = await supabaseAdmin.rpc("increment_demo_usage", {
+      p_date: today,
+      p_cap: DEMO_DAILY_CAP,
+    });
+    if (usageError) {
+      console.error("[demo] usage counter failed", usageError);
+      throw new Error("The demo is temporarily unavailable — please try again later.");
+    }
+    if (usage === -1) throw new DemoLimitError();
+
     const { scrapeRecipePage, parseRecipe, estimateMacros, proteinPer100kcal } = await import(
       "./nutrition.server"
     );
