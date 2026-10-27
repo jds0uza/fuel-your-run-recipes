@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as AuthenticatedPlannerRouteImport } from './routes/_authenticated/planner'
 import { Route as AuthenticatedRecipesRouteImport } from './routes/_authenticated/recipes'
 
 const IndexRoute = IndexRouteImport.update({
@@ -34,6 +35,11 @@ const DemoRoute = DemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPlannerRoute = AuthenticatedPlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRecipesRoute = AuthenticatedRecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
@@ -44,12 +50,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/planner': typeof AuthenticatedPlannerRoute
   '/recipes': typeof AuthenticatedRecipesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/planner': typeof AuthenticatedPlannerRoute
   '/recipes': typeof AuthenticatedRecipesRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/_authenticated/planner': typeof AuthenticatedPlannerRoute
   '/_authenticated/recipes': typeof AuthenticatedRecipesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/demo' | '/recipes'
+  fullPaths: '/' | '/auth' | '/demo' | '/planner' | '/recipes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/demo' | '/recipes'
+  to: '/' | '/auth' | '/demo' | '/planner' | '/recipes'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/demo'
+    | '/_authenticated/planner'
     | '/_authenticated/recipes'
   fileRoutesById: FileRoutesById
 }
@@ -111,6 +121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/planner': {
+      id: '/_authenticated/planner'
+      path: '/planner'
+      fullPath: '/planner'
+      preLoaderRoute: typeof AuthenticatedPlannerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/recipes': {
       id: '/_authenticated/recipes'
       path: '/recipes'
@@ -122,10 +139,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPlannerRoute: typeof AuthenticatedPlannerRoute
   AuthenticatedRecipesRoute: typeof AuthenticatedRecipesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPlannerRoute: AuthenticatedPlannerRoute,
   AuthenticatedRecipesRoute: AuthenticatedRecipesRoute,
 }
 

@@ -120,9 +120,14 @@ function RecipesPage() {
           <Link to="/" className="font-display text-2xl">
             FUEL LAB
           </Link>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut className="mr-1.5 h-4 w-4" /> Sign out
-          </Button>
+          <nav className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/planner">Weekly plan</Link>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={signOut}>
+              <LogOut className="mr-1.5 h-4 w-4" /> Sign out
+            </Button>
+          </nav>
         </div>
       </header>
 
