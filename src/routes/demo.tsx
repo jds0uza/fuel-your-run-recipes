@@ -43,8 +43,7 @@ const LABELS: Record<Category, string> = {
 };
 
 const BOX_KEY = "fuel-lab-demo-box";
-const ANALYSES_KEY = "fuel-lab-demo-analyses";
-const MAX_LIVE_ANALYSES = 3;
+const LIMIT_MESSAGE = "Daily demo limit reached";
 
 type Draft = Awaited<ReturnType<typeof analyzeDemoRecipeUrl>>["draft"];
 
@@ -61,7 +60,7 @@ function DemoPage() {
   const analyze = useServerFn(analyzeDemoRecipeUrl);
 
   const [box, setBox] = useState<Recipe[]>([]);
-  const [analysesUsed, setAnalysesUsed] = useState(0);
+  const [limitReached, setLimitReached] = useState(false);
   const [filter, setFilter] = useState<Category | "all">("all");
   const [url, setUrl] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -71,7 +70,6 @@ function DemoPage() {
     try {
       const saved = window.localStorage.getItem(BOX_KEY);
       if (saved) setBox(JSON.parse(saved) as Recipe[]);
-      setAnalysesUsed(Number(window.localStorage.getItem(ANALYSES_KEY) ?? "0") || 0);
     } catch {
       // Corrupted or unavailable storage — start with an empty demo box.
     }
