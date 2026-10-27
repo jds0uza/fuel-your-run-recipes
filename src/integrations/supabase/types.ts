@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      demo_usage: {
+        Row: {
+          count: number
+          usage_date: string
+        }
+        Insert: {
+          count?: number
+          usage_date: string
+        }
+        Update: {
+          count?: number
+          usage_date?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -115,7 +130,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_demo_usage: {
+        Args: { p_cap: number; p_date: string }
+        Returns: number
+      }
     }
     Enums: {
       recipe_category: "breakfast" | "main" | "side" | "snack"
