@@ -1,62 +1,51 @@
 # Fuel Lab — Macro-Aware Recipe Box for Endurance Runners
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live%20Preview-brightgreen?style=for-the-badge&logo=cloudflare)](https://fuel-your-run-recipes.roaring-dragon89.workers.dev/)
+**Live application:** [paceplate-macro-guide.lovable.app](https://paceplate-macro-guide.lovable.app)
 
-**Live Application:** [fuel-your-run-recipes.roaring-dragon89.workers.dev](https://fuel-your-run-recipes.roaring-dragon89.workers.dev/)  
-*(Instant access — test with pre-analyzed sample recipes or run the live demo with no signup required)*
-
----
-
-## 🏃 The Problem & Motivation
-
-Marathon and endurance training places rigorous metabolic demands on the body. Sports nutrition research demonstrates that endurance athletes generally require:
-
-> **5 to 10 grams of carbohydrates** and **1.2 to 2.0 grams of protein** per kilogram of body weight per day, scaling with training volume and workout intensity.  
-> *(Source: Academy of Nutrition and Dietetics, Dietitians of Canada, and American College of Sports Medicine, 2016)*
-
-Meeting these daily targets requires athletes to constantly evaluate recipes before cooking. Most cooking sites give vague descriptions or buried nutrition panels with no focus on training macros.
-
-**Fuel Lab** eliminates stove-side mental math:
-1. **Paste any recipe link**: Fuel Lab parses the page, extracting ingredients, preparation time, servings, and dish type.
-2. **Macro Estimation**: Matches ingredients against **USDA FoodData Central** to compute per-serving protein, carbs, fats, and calories.
-3. **Protein Density Metric**: Evaluates grams of protein per 100 kcal to help runners balance high-carb recovery meals with lean protein density.
-4. **Target Goals Calculator**: Calculates personalized daily protein and carbohydrate ranges based on current body weight and today's training load.
+*(Open the [live demo](https://paceplate-macro-guide.lovable.app/demo) with no signup — sample analyses, a demo recipe box, and a capped live recipe-URL analysis.)*
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## The problem
 
-The application is structured as a full-stack, type-safe web application running on Cloudflare Workers edge runtime:
+Marathon and endurance training places rigorous metabolic demands on the body. Sports nutrition research recommends that endurance athletes eat roughly **5–10 g of carbohydrates** and **1.2–2.0 g of protein per kilogram of body weight per day**, scaling with training volume *(Academy of Nutrition and Dietetics, Dietitians of Canada & ACSM, 2016)*.
 
-- **Framework**: [TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) (full-stack SSR, file-based routing, strict type safety)
-- **Data & State Management**: [TanStack Query](https://tanstack.com/query) + type-safe server RPCs (`createServerFn`)
-- **Backend / Ingestion Pipeline**:
-  - Recipe page markdown extraction & structured ingredient parsing
-  - Nutrition normalization and matching via USDA FoodData Central
-  - Edge server runtime deployed with Nitro (`cloudflare-module` preset)
-- **Database & Auth**: [Supabase](https://supabase.com) (PostgreSQL with Row Level Security) + client-side guest sandbox via `localStorage` for zero-friction evaluations
-- **Styling**: Modern design system using Tailwind CSS & Radix UI primitives
+Meeting those targets means constantly checking recipes against daily macros — and most cooking sites bury nutrition in a footnote, or skip it entirely.
 
----
+**Fuel Lab removes the mental math:**
 
-## ⚡ Built with Lovable — Engineering & Workflow Insights
+1. **Paste any recipe link** — the page is scraped to markdown and an LLM extracts ingredients, preparation time, servings, and dish type.
+2. **Macro estimation** — every ingredient is matched against **USDA FoodData Central** (with an AI fallback for unmatched foods) to compute per-serving protein, carbs, fat, fiber, and calories.
+3. **Protein density metric** — grams of protein per 100 kcal, so runners can balance high-carb recovery meals against lean protein.
+4. **Weight-based daily goals** — enter your weight and training load to see personalized protein and carbohydrate ranges (computed locally; weight is never stored).
+5. **Weekly planner** — a recipe with 4 servings becomes 4 per-serving cards you can drag across a 7-day board, with per-day protein/carb totals.
 
-This project demonstrates how to leverage **Lovable** to build production-grade, full-stack applications with edge deployment:
+## How it works
 
-- **Accelerated Architecture Prototyping**: Leveraged Lovable to bootstrap a modern TanStack Start + Nitro stack with unified SSR and dev server configurations.
-- **Bi-Directional Git Synchronization**: Maintained a clean, continuous Git integration between local development (terminal, Git, branch workflows) and the Lovable platform.
-- **Edge Runtime Optimization**: Tuned build outputs and dependencies (`@lovable.dev/vite-tanstack-config`) for zero-cold-start execution on **Cloudflare Workers**.
-- **Frictionless Product Experience**: Engineered a standalone, zero-auth demo flow alongside authenticated Supabase persistence so visitors can test core features immediately.
+```
+Recipe URL → Firecrawl scrape (markdown) → LLM structured extraction
+          → USDA FoodData Central lookup per ingredient (AI fills gaps)
+          → per-serving macros + protein-per-100-kcal
+          → private recipe box (categories: breakfast / mains / sides / snacks)
+          → drag servings onto a weekly plan
+```
 
----
+## Tech stack
 
-## 🚀 Getting Started Locally
+- **Framework**: [TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) — full-stack React 19 with SSR, file-based routing, and strict type safety
+- **Data & state**: [TanStack Query](https://tanstack.com/query) + type-safe server functions (`createServerFn`)
+- **Backend**: PostgreSQL with Row Level Security (owner-scoped tables), managed auth, and service-role server functions
+- **Ingestion pipeline**: Firecrawl page extraction → LLM structured parsing (Gemini via an OpenAI-compatible gateway) → USDA FoodData Central nutrition matching with AI fallback for unmatched ingredients
+- **Demo quota**: guest live analyses are capped server-side in a database counter (`demo_usage` + a service-role RPC), so clearing browser storage can't bypass the limit
+- **Styling**: Tailwind CSS v4 design system with Radix UI primitives
 
-### Prerequisites
-- Node.js 20+
-- npm (or bun)
+## Privacy & cost controls
 
-### Installation
+- Saved recipes are visible **only to their owner** (Row Level Security on every table).
+- The public demo is read-mostly: pre-analyzed samples plus a small daily allowance of live analyses, enforced server-side.
+- API keys (USDA, Firecrawl) are stored as encrypted app secrets, never in the repository.
+
+## Run it locally
 
 ```bash
 # Clone the repository
@@ -66,19 +55,25 @@ cd fuel-your-run-recipes
 # Install dependencies
 npm install
 
-# Start local development server with HMR
+# Start the dev server with HMR
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to view the project locally.
+Then open [http://localhost:5173](http://localhost:5173).
 
-### Production Build
+### Production build
 
 ```bash
-# Compile client and server bundles
 npm run build
-
-# Preview locally
 npm run preview
 ```
 
+---
+
+## Testing
+
+`src/lib/nutrition-goals.test.ts` covers the weight-based goal math (protein 1.2–2.0 g/kg, carbohydrate ranges per training load, lb↔kg conversion, invalid input). Run it with `bun test`.
+
+## Built with
+
+This app was built with [Lovable](https://lovable.dev), which generated the TanStack Start + edge-runtime foundation; the recipe pipeline, planner, demo quota, and nutrition model were built iteratively in the Lovable editor and kept in two-way Git sync with this repository.
