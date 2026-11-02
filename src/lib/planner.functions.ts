@@ -55,10 +55,11 @@ export const addRecipeToPlan = createServerFn({ method: "POST" })
       .single();
     if (recipeError || !recipe) throw new Error("Recipe not found.");
 
-    const rows = Array.from({ length: recipe.servings }, () => ({
+    // One serving per person per day: spread servings across consecutive days, wrapping past Sunday.
+    const rows = Array.from({ length: recipe.servings }, (_, i) => ({
       user_id: context.userId,
       recipe_id: recipe.id,
-      day_of_week: data.day_of_week,
+      day_of_week: (data.day_of_week + i) % 7,
     }));
     const { error } = await context.supabase.from("meal_plan_entries").insert(rows);
     if (error) throw new Error(error.message);

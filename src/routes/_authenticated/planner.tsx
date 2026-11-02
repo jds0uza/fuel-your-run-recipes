@@ -162,8 +162,8 @@ function PlannerPage() {
             </p>
             <h1 className="mt-2 text-4xl leading-[0.95]">Plan the week, serving by serving</h1>
             <p className="mt-3 max-w-xl text-muted-foreground">
-              Drag a recipe onto a day and it splits into one card per serving — a 4-serving chili
-              becomes 4 cards you can spread across lunches and dinners. Each day totals its
+              Drag a recipe onto a day and its servings spread one per day from there — a 4-serving chili
+              covers 4 days, and you can still drag any serving elsewhere. Each day totals its
               protein and carbs.
             </p>
           </div>
