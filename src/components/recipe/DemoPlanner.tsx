@@ -44,7 +44,7 @@ export function DemoPlanner({ recipes }: { recipes: Recipe[] }) {
     const r = byId.get(recipeId);
     if (!r) return;
     const n = Math.max(1, r.servings || 1);
-    persist([...valid, ...Array.from({ length: n }, () => ({ id: newId(), recipe_id: recipeId, day }))]);
+    persist([...valid, ...Array.from({ length: n }, (_, i) => ({ id: newId(), recipe_id: recipeId, day: (day + i) % 7 }))]);
   }
 
   function handleDrop(day: number, e: React.DragEvent) {
@@ -82,7 +82,7 @@ export function DemoPlanner({ recipes }: { recipes: Recipe[] }) {
             <CalendarDays className="h-5 w-5 text-primary" aria-hidden /> Demo weekly plan
           </h2>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Drag a recipe onto a day and it splits into one card per serving. Move servings between
+            Drag a recipe onto a day and its servings spread across the following days, one per day. Move servings between
             days and watch daily protein and carbs add up. Saved only in this browser.
           </p>
         </div>
