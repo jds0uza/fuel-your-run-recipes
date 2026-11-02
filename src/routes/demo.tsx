@@ -5,6 +5,7 @@ import { Clock, Database, FlaskConical, Link2, Loader2, Sparkles, Users } from "
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { DemoPlanner } from "@/components/recipe/DemoPlanner";
 import { MacroSplitBar, MacroStats, ProteinRatioBadge } from "@/components/recipe/MacroStats";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -352,6 +353,10 @@ function DemoPage() {
             </div>
           )}
         </section>
+
+        <DemoPlanner
+          recipes={[...DEMO_RECIPES, ...box.filter((r) => !DEMO_RECIPES.some((d) => d.id === r.id))]}
+        />
 
         <section className="mt-12 rounded-xl border border-border bg-card p-8 text-center shadow-card">
           <h2 className="text-3xl">Want your own recipe box?</h2>
