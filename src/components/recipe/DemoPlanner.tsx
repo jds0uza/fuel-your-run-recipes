@@ -152,7 +152,7 @@ export function DemoPlanner({ recipes }: { recipes: Recipe[] }) {
               onDragLeave={() => setDragOverDay((d) => (d === day ? null : d))}
               onDrop={(e) => handleDrop(day, e)}
               className={`flex min-h-[180px] flex-col rounded-xl border p-3 transition-colors ${
-                dragOverDay === day ? "border-primary bg-primary/5 shadow-glow" : "border-border bg-card shadow-card"
+                dragOverDay === day ? "border-primary bg-primary/5 shadow-glow" : "border-primary/20 bg-gradient-to-b from-primary/10 to-secondary/60 shadow-card"
               }`}
             >
               <h3 className="font-display text-lg tracking-wide">{label}</h3>
@@ -190,12 +190,12 @@ export function DemoPlanner({ recipes }: { recipes: Recipe[] }) {
                     );
                   })}
                 {t.count === 0 && (
-                  <p className="rounded-md border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+                  <p className="rounded-md border border-dashed border-primary/30 bg-background/60 p-3 text-center text-xs text-muted-foreground">
                     Drop servings here
                   </p>
                 )}
               </div>
-              <div className="mt-3 border-t border-border pt-2 text-xs">
+              <div className="mt-3 border-t border-primary/20 pt-2 text-xs">
                 {t.count === 0 ? (
                   <p className="text-muted-foreground">Nothing planned</p>
                 ) : (
