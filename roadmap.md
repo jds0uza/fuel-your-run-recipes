@@ -2,7 +2,8 @@
 
 ## Open tasks
 
-(none)
+- Remove the README architecture diagram and replace recruiter references with users.
+- Update GitHub repository description and live link; provide profile-pinning steps.
 
 ## Done
 
@@ -11,6 +12,6 @@
 - USDA_API_KEY stored as encrypted app secret.
 - Public demo walkthrough (`/demo`): sample recipes, localStorage demo box, live analyses capped server-side at 25/day (demo_usage table + increment_demo_usage RPC, service-role only).
 - Weekly planner (`/planner`, signed-in): 7-day board, per-serving cards, drag between days, per-day totals. Verified signed-in in preview.
-- README rewritten for recruiters (what it does, pipeline, stack, privacy/cost controls, local run).
+- README rewritten for users (what it does, pipeline, stack, privacy/cost controls, local run).
 - README architecture diagram and technical decisions added, including storage boundaries, quota semantics, planner behavior, and known trade-offs.
 - Published publicly at https://paceplate-macro-guide.lovable.app (security scan clean before publish).
