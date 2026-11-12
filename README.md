@@ -1,5 +1,9 @@
 # Fuel Lab — Macro-Aware Recipe Box for Endurance Runners
 
+Full-stack endurance nutrition app with USDA-first recipe analysis, private recipe storage, and a drag-and-drop weekly meal planner.
+
+**GitHub repository:** [jds0uza/fuel-your-run-recipes](https://github.com/jds0uza/fuel-your-run-recipes)
+
 **Live application:** [paceplate-macro-guide.lovable.app](https://paceplate-macro-guide.lovable.app)
 
 *(Open the [live demo](https://paceplate-macro-guide.lovable.app/demo) with no signup — sample analyses, a demo recipe box, and a capped live recipe-URL analysis.)*
