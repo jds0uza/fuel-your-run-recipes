@@ -20,15 +20,69 @@ Meeting those targets means constantly checking recipes against daily macros —
 4. **Weight-based daily goals** — enter your weight and training load to see personalized protein and carbohydrate ranges (computed locally; weight is never stored).
 5. **Weekly planner** — a recipe with 4 servings becomes 4 per-serving cards you can drag across a 7-day board, with per-day protein/carb totals.
 
-## How it works
+## Architecture
 
+```text
+Browser · React 19 + TanStack Router / Query
+│
+├── Daily goals → pure weight / training-load calculations
+│                (local calculation; body weight is not stored)
+│
+├── Public demo
+│   ├── Sample recipes → demo box + weekly plan → browser localStorage
+│   └── Live recipe URL ────────────────────────────────┐
+│                                                      │
+└── Signed-in recipe box + weekly plan                  │
+    └── Authenticated server functions                 │
+        ├── Owner-scoped reads / writes                │
+        │   └── PostgreSQL + Row Level Security        │
+        │       ├── recipes (per-serving nutrition)    │
+        │       └── meal_plan_entries (one serving)    │
+        └── Live recipe URL ───────────────────────┐   │
+                                                  │   │
+Server · TanStack Start / Cloudflare Workers       │   │
+                                                  │   ▼
+                                                  │   Atomic demo quota RPC
+                                                  │   (25 attempts / UTC day,
+                                                  │    shared by all guests)
+                                                  │   │ allowed
+                                                  ▼   ▼
+                                           Shared analysis pipeline
+                                                  │
+                         Firecrawl → recipe-page markdown
+                                                  │
+                         Gemini → structured recipe + ingredient grams
+                                                  │
+                         USDA → per-100-g nutrition per ingredient
+                                                  │
+                         AI fallback → unmatched / failed USDA lookups
+                                                  │
+                         Scale by grams and servings → macros + density
+                                                  │
+                         Return draft → visitor chooses whether to save
 ```
-Recipe URL → Firecrawl scrape (markdown) → LLM structured extraction
-          → USDA FoodData Central lookup per ingredient (AI fills gaps)
-          → per-serving macros + protein-per-100-kcal
-          → private recipe box (categories: breakfast / mains / sides / snacks)
-          → drag servings onto a weekly plan
-```
+
+The demo and private account share recipe-analysis logic, but not recipe storage. Demo saves and planning stay in the visitor's browser; signed-in saves and planning persist in owner-scoped database tables. Live analysis calls external services from the server using encrypted app secrets.
+
+## Technical decisions
+
+| Decision | Why | Trade-off / boundary |
+| --- | --- | --- |
+| **USDA first, AI fallback** | Prefer reference nutrition data while supporting ingredients USDA cannot match or requests that fail. Missing foods are deduplicated into one batched AI fallback request. | Food matching uses the first USDA search result; ingredient weights are AI-estimated. Results are estimates, not verified dietary advice. Source and coverage accompany the analysis. |
+| **Store macros per serving** | A planned serving can directly contribute protein, carbs, and calories to daily totals without recalculating the original recipe. Protein density is `protein_g / calories × 100`. | Estimates assume evenly divided servings; changing portion size is not modeled. |
+| **One planner entry per serving** | Each portion can move independently. Adding a recipe spreads portions over consecutive days from the chosen start day. | The board is a repeating Monday–Sunday week, not a dated calendar: portions wrap after Sunday and can overlap when a recipe has more than seven servings. There are no separate lunch / dinner slots. |
+| **Authenticated functions + owner-scoped RLS** | Authentication checks precede private operations, and database policies restrict access to the owner. Ordinary reads and writes use the caller's authenticated database client. | The privileged client is reserved for the public demo quota; it is not used for ordinary recipe or planner access. |
+| **Atomic, server-enforced guest quota** | A database RPC increments the daily counter before scraping, preventing browser resets and concurrent requests from bypassing the shared cap. | The cap is **25 live analysis attempts per UTC day across all guests**, not per visitor or per USDA lookup. Failed analyses consume an attempt; counter failures block analysis. Signed-in analysis is outside this cap. |
+| **Browser-only demo persistence** | Recruiters can save sample recipes and try planning without signing up or using the USDA key for those interactions. | `localStorage` is browser/device-specific and can be cleared. Guest live URL analysis still uses the app's USDA, scraping, and AI services. |
+| **Pure daily-goal calculations** | Separating formulas from controls makes the math independently testable and avoids storing body weight. | Goals are training-based ranges, not an individualized clinical nutrition prescription. |
+| **Server-only external-service credentials** | USDA, scraping, and AI calls run on the server; private keys are encrypted app secrets, not repository or browser configuration. | Keeping keys secret does not eliminate usage costs or upstream rate limits. The guest quota bounds attempts, not total service spend. |
+
+### Known limitations and next steps
+
+- Some recipe sites reject scraping; malformed extraction or incomplete ingredient matches can reduce coverage.
+- Each usable ingredient currently triggers a USDA lookup; repeat URLs and ingredient matches are not cached.
+- Tests cover daily-goal formulas. Broader automated coverage for macro scaling, quota concurrency, and planner distribution would strengthen regression protection.
+- Potential next steps: cache repeated analyses, add per-visitor throttling alongside the global quota, and support dated weeks and portion-size adjustments.
 
 ## Tech stack
 
