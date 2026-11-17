@@ -6,6 +6,7 @@
 
 ## Done
 
+- Removed public sign-in and account-creation prompts; verified home-to-demo navigation and browser-only recipe saves after reload. Existing private account access is unchanged.
 - Recipe box: URL → scrape → parse → USDA-first macros → private save, category filters.
 - Daily goals section on home page (weight-based protein/carb ranges, tested).
 - USDA_API_KEY stored as encrypted app secret.

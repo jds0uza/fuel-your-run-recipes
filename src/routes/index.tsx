@@ -64,9 +64,6 @@ function Landing() {
               Try Demo
             </Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/auth">Sign in</Link>
-          </Button>
         </div>
       </header>
 
@@ -90,9 +87,6 @@ function Landing() {
                 <Play className="size-4 fill-current" />
                 Try the Interactive Demo
               </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/auth">Sign in / Account</Link>
             </Button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">

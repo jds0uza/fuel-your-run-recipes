@@ -110,9 +110,6 @@ function DemoPage() {
           <Link to="/" className="font-display text-2xl">
             FUEL LAB
           </Link>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/auth">Sign in</Link>
-          </Button>
         </div>
       </header>
 
@@ -167,7 +164,7 @@ function DemoPage() {
         <section className="mt-12">
           <h2 className="text-2xl">Sample analyses</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            What the signed-in app shows after analyzing a URL. Add any of these to your demo box.
+            Add any of these recipes to your demo box.
           </p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {DEMO_RECIPES.map((recipe) => (
@@ -319,7 +316,7 @@ function DemoPage() {
             </Tabs>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Stored only in this browser — the real app saves recipes privately to your account.
+            Stored only in this browser.
           </p>
           {filteredBox.length === 0 ? (
             <p className="mt-5 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
@@ -358,21 +355,11 @@ function DemoPage() {
           recipes={[...DEMO_RECIPES, ...box.filter((r) => !DEMO_RECIPES.some((d) => d.id === r.id))]}
         />
 
-        <section className="mt-12 rounded-xl border border-border bg-card p-8 text-center shadow-card">
-          <h2 className="text-3xl">Want your own recipe box?</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Create a free account to save recipes privately, keep them across devices, and analyze as
-            many URLs as you like.
-          </p>
-          <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/auth">Create my account</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/">Back to home</Link>
-            </Button>
-          </div>
-        </section>
+        <footer className="mt-12 border-t border-border pt-6">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/">Back to home</Link>
+          </Button>
+        </footer>
       </div>
     </main>
   );
