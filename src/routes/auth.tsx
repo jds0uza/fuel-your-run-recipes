@@ -110,7 +110,7 @@ function AuthPage() {
           <Button
             type="button"
             className="mt-3.5 w-full gap-2 font-medium shadow-sm"
-            onClick={() => navigate({ to: "/demo" })}
+            onClick={() => navigate({ to: "/" })}
           >
             <UserCheck className="size-4" />
             Sign in as Demo Reviewer
