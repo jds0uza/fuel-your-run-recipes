@@ -79,8 +79,262 @@ function parseJsonLoose<T>(text: string): T {
   return JSON.parse(start >= 0 ? cleaned.slice(start, end + 1) : cleaned) as T;
 }
 
-/** Scrape a recipe page through the Firecrawl connector gateway. */
-export async function scrapeRecipePage(url: string): Promise<{ markdown: string; image: string | null; title: string | null }> {
+/**
+ * Helper to parse ISO 8601 duration strings like "PT15M" or "PT1H30M" into minutes.
+ */
+function parseIsoDuration(str: unknown): number | null {
+  if (!str || typeof str !== "string") return null;
+  const match = str.match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);
+  if (!match) return null;
+  const days = parseInt(match[1] || "0", 10);
+  const hours = parseInt(match[2] || "0", 10);
+  const minutes = parseInt(match[3] || "0", 10);
+  const total = days * 1440 + hours * 60 + minutes;
+  return total > 0 && total < 10000 ? total : null;
+}
+
+function parseFraction(s: string): number {
+  if (!s) return 0;
+  const str = s.trim();
+  if (str.includes(" ")) {
+    const parts = str.split(/\s+/);
+    return (parseFloat(parts[0]) || 0) + parseFraction(parts[1] || "");
+  }
+  if (str.includes("/")) {
+    const [num, den] = str.split("/");
+    const d = parseFloat(den);
+    return d ? (parseFloat(num) || 0) / d : 0;
+  }
+  return parseFloat(str) || 0;
+}
+
+/** Parse a raw ingredient line into a clean food name and estimated gram weight. */
+export function parseIngredientLine(raw: string): ParsedIngredient {
+  const text = raw.trim();
+  let grams: number | null = null;
+
+  // 1. Explicit grams / kg
+  let m = text.match(/(\d+(?:\.\d+)?)\s*(?:g|gram|grams)\b/i);
+  if (m) grams = Math.round(parseFloat(m[1]));
+
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?)\s*(?:kg|kilos?|kilograms?)\b/i);
+    if (m) grams = Math.round(parseFloat(m[1]) * 1000);
+  }
+
+  // 2. Pounds / ounces
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:lbs?|pounds?)\b/i);
+    if (m) grams = Math.round(parseFraction(m[1]) * 453.6);
+  }
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:oz|ounces?)\b/i);
+    if (m) grams = Math.round(parseFraction(m[1]) * 28.35);
+  }
+
+  // 3. Cups / Tbsp / Tsp / ml
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:cups?|c\.)\b/i);
+    if (m) grams = Math.round(parseFraction(m[1]) * 200);
+  }
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:tbsp|tablespoons?|tbs)\b/i);
+    if (m) grams = Math.round(parseFraction(m[1]) * 15);
+  }
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:tsp|teaspoons?)\b/i);
+    if (m) grams = Math.round(parseFraction(m[1]) * 5);
+  }
+  if (!grams) {
+    m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:ml|milliliters?)\b/i);
+    if (m) grams = Math.round(parseFraction(m[1]));
+  }
+
+  // Clean food name for search
+  let food = text
+    .replace(/\(.*?\)/g, "") // remove parentheticals
+    .replace(
+      /\b(?:\d+(?:\.\d+)?|\d+\/\d+)\s*(?:g|grams?|kg|kilos?|kilograms?|lbs?|pounds?|oz|ounces?|cups?|c\.|tbsp|tablespoons?|tsp|teaspoons?|ml|liters?|pinches?|cloves?|slices?|pieces?)\b/gi,
+      "",
+    )
+    .replace(/^[0-9\s\/\.\,\-]+/, "") // remove leading numbers/fractions
+    .replace(
+      /\b(?:chopped|diced|minced|sliced|peeled|grated|crushed|cooked|raw|fresh|frozen|boneless|skinless|divided|optional|to taste|at room temperature|warmed|melted|large|medium|small)\b/gi,
+      "",
+    )
+    .replace(/[,;]+$/, "")
+    .trim();
+
+  if (!food || food.length < 2) {
+    food = text.replace(/^[0-9\s\/\.\,\-]+/, "").slice(0, 50).trim();
+  }
+
+  return {
+    raw: text.slice(0, 200),
+    food: food.slice(0, 80),
+    grams: grams && grams > 0 && grams < 20000 ? grams : null,
+  };
+}
+
+function inferCategory(categoryRaw: unknown): ParsedRecipe["category"] {
+  const cat = Array.isArray(categoryRaw)
+    ? categoryRaw.join(" ").toLowerCase()
+    : String(categoryRaw ?? "").toLowerCase();
+  if (cat.includes("breakfast") || cat.includes("brunch") || cat.includes("pancake") || cat.includes("oat")) {
+    return "breakfast";
+  }
+  if (
+    cat.includes("snack") ||
+    cat.includes("dessert") ||
+    cat.includes("smoothie") ||
+    cat.includes("bar") ||
+    cat.includes("energy")
+  ) {
+    return "snack";
+  }
+  if (cat.includes("side") || cat.includes("salad") || cat.includes("appetizer")) {
+    return "side";
+  }
+  return "main";
+}
+
+function extractInstructions(instructionsRaw: unknown): string[] {
+  if (!instructionsRaw) return [];
+  const out: string[] = [];
+
+  if (typeof instructionsRaw === "string") {
+    return instructionsRaw
+      .split(/\r?\n+/)
+      .map((s) => s.trim().replace(/^\d+[\.\)]\s*/, ""))
+      .filter((s) => s.length > 5)
+      .slice(0, 15);
+  }
+
+  if (Array.isArray(instructionsRaw)) {
+    for (const item of instructionsRaw) {
+      if (typeof item === "string") {
+        const cleaned = item.trim().replace(/^\d+[\.\)]\s*/, "");
+        if (cleaned.length > 0) out.push(cleaned.slice(0, 400));
+      } else if (item && typeof item === "object") {
+        const obj = item as Record<string, unknown>;
+        if (typeof obj.text === "string") {
+          out.push(obj.text.trim().slice(0, 400));
+        } else if (Array.isArray(obj.itemListElement)) {
+          for (const sub of obj.itemListElement) {
+            if (sub && typeof sub === "object" && typeof (sub as Record<string, unknown>).text === "string") {
+              out.push(String((sub as Record<string, unknown>).text).trim().slice(0, 400));
+            }
+          }
+        }
+      }
+    }
+  }
+  return out.slice(0, 15);
+}
+
+function extractServings(yieldRaw: unknown): number {
+  if (typeof yieldRaw === "number" && yieldRaw >= 1) return Math.min(Math.round(yieldRaw), 50);
+  const text = Array.isArray(yieldRaw) ? yieldRaw.join(" ") : String(yieldRaw ?? "");
+  const match = text.match(/(\d+)/);
+  if (match) {
+    const n = parseInt(match[1], 10);
+    if (n >= 1 && n <= 50) return n;
+  }
+  return 1;
+}
+
+function extractImageUrl(imageRaw: unknown): string | null {
+  if (!imageRaw) return null;
+  if (typeof imageRaw === "string") return imageRaw;
+  if (Array.isArray(imageRaw) && typeof imageRaw[0] === "string") return imageRaw[0];
+  if (typeof imageRaw === "object" && typeof (imageRaw as Record<string, unknown>).url === "string") {
+    return (imageRaw as Record<string, unknown>).url as string;
+  }
+  return null;
+}
+
+/** Extract and parse Schema.org Recipe JSON-LD from HTML if present. */
+export function parseJsonLdRecipe(html: string): ParsedRecipe | null {
+  if (!html) return null;
+  const scriptRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = scriptRegex.exec(html)) !== null) {
+    const content = match[1].trim();
+    if (!content) continue;
+    try {
+      const data = JSON.parse(content);
+      const items = Array.isArray(data)
+        ? data
+        : data["@graph"] && Array.isArray(data["@graph"])
+          ? data["@graph"]
+          : [data];
+
+      for (const item of items) {
+        if (!item || typeof item !== "object") continue;
+        const type = item["@type"];
+        const isRecipe = type === "Recipe" || (Array.isArray(type) && type.includes("Recipe"));
+        const rawIngredients = item.recipeIngredient ?? item.ingredients;
+        if (isRecipe && Array.isArray(rawIngredients) && rawIngredients.length > 0) {
+          const ingredients: ParsedIngredient[] = rawIngredients
+            .slice(0, 40)
+            .map((raw) => parseIngredientLine(String(raw)))
+            .filter((i) => i.raw || i.food);
+
+          return {
+            title: String(item.name ?? "Untitled recipe").slice(0, 160),
+            category: inferCategory(item.recipeCategory),
+            dish_type: item.recipeCuisine ? String(item.recipeCuisine).slice(0, 80) : null,
+            prep_minutes: parseIsoDuration(item.prepTime),
+            total_minutes: parseIsoDuration(item.totalTime ?? item.cookTime),
+            servings: extractServings(item.recipeYield),
+            image_url: extractImageUrl(item.image),
+            instructions: extractInstructions(item.recipeInstructions),
+            ingredients,
+          };
+        }
+      }
+    } catch {
+      // Continue to next script tag if JSON parse fails
+    }
+  }
+  return null;
+}
+
+/** Scrape a recipe page through direct fetch first, falling back to Firecrawl gateway. */
+export async function scrapeRecipePage(url: string): Promise<{
+  markdown: string;
+  image: string | null;
+  title: string | null;
+  html: string | null;
+}> {
+  // 1. Try lightweight direct fetch first (free, fast, preserves full HTML + JSON-LD)
+  try {
+    const directRes = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (directRes.ok) {
+      const html = await directRes.text();
+      // If direct HTML contains Recipe JSON-LD, return immediately (skips Firecrawl entirely)
+      if (html.includes("application/ld+json") && html.includes("Recipe")) {
+        return {
+          markdown: "",
+          image: null,
+          title: null,
+          html,
+        };
+      }
+    }
+  } catch {
+    // Direct fetch timed out, blocked by CORS/WAF, or failed — fall back to Firecrawl
+  }
+
+  // 2. Firecrawl scrape gateway (handles JS rendering and anti-bot challenges)
   const lovableKey = process.env["LOVABLE_API_KEY"];
   const firecrawlKey = process.env["FIRECRAWL_API_KEY"];
   if (!lovableKey || !firecrawlKey) throw new Error("Recipe scraping is not configured.");
@@ -92,7 +346,7 @@ export async function scrapeRecipePage(url: string): Promise<{ markdown: string;
       "X-Connection-Api-Key": firecrawlKey,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ url, formats: ["markdown"], onlyMainContent: true }),
+    body: JSON.stringify({ url, formats: ["markdown", "html"], onlyMainContent: false }),
   });
 
   if (!res.ok) {
@@ -106,22 +360,41 @@ export async function scrapeRecipePage(url: string): Promise<{ markdown: string;
 
   const payload = (await res.json()) as {
     markdown?: string;
+    html?: string;
     metadata?: { title?: string; ogImage?: string; "og:image"?: string };
-    data?: { markdown?: string; metadata?: { title?: string; ogImage?: string; "og:image"?: string } };
+    data?: { markdown?: string; html?: string; metadata?: { title?: string; ogImage?: string; "og:image"?: string } };
   };
   const markdown = payload.markdown ?? payload.data?.markdown ?? "";
+  const html = payload.html ?? payload.data?.html ?? null;
   const metadata = payload.metadata ?? payload.data?.metadata ?? {};
-  if (!markdown.trim()) throw new Error("That page had no readable recipe content.");
+  if (!markdown.trim() && !html) throw new Error("That page had no readable recipe content.");
 
   return {
     markdown: markdown.slice(0, 24000),
     image: metadata.ogImage ?? metadata["og:image"] ?? null,
     title: metadata.title ?? null,
+    html,
   };
 }
 
-/** Turn scraped page text into a structured recipe. */
-export async function parseRecipe(markdown: string, sourceUrl: string): Promise<ParsedRecipe> {
+/**
+ * Turn page content into a structured recipe.
+ * Uses Schema.org JSON-LD first (0 AI tokens), falling back to Gemini only when absent.
+ */
+export async function parseRecipe(
+  markdown: string,
+  sourceUrl: string,
+  html?: string | null,
+): Promise<ParsedRecipe> {
+  // Step 1: Check for Schema.org Recipe JSON-LD (free & deterministic)
+  if (html) {
+    const schemaRecipe = parseJsonLdRecipe(html);
+    if (schemaRecipe && schemaRecipe.ingredients.length > 0) {
+      return schemaRecipe;
+    }
+  }
+
+  // Step 2: Fallback to Gemini if page does not provide structured JSON-LD
   const content = await askAI(
     [
       "You extract structured recipe data from scraped web page text.",

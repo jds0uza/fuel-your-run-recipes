@@ -23,13 +23,13 @@ import { listRecipes, type Recipe } from "@/lib/recipes.functions";
 export const Route = createFileRoute("/_authenticated/planner")({
   head: () => ({
     meta: [
-      { title: "Weekly meal plan — Fuel Lab" },
+      { title: "Weekly meal plan — Plate Math" },
       {
         name: "description",
         content:
           "Drag recipes onto your week: every serving becomes a movable card, and each day adds up protein, carbs and calories.",
       },
-      { property: "og:title", content: "Weekly meal plan — Fuel Lab" },
+      { property: "og:title", content: "Weekly meal plan — Plate Math" },
       {
         property: "og:description",
         content: "Plan the week's meals per serving and see daily protein and carb totals.",
@@ -53,8 +53,8 @@ function totalsFor(entries: PlanEntry[], day: number): DayTotals {
   };
 }
 
-const RECIPE_MIME = "application/x-fuel-lab-recipe";
-const ENTRY_MIME = "application/x-fuel-lab-entry";
+const RECIPE_MIME = "application/x-plate-math-recipe";
+const ENTRY_MIME = "application/x-plate-math-entry";
 
 function PlannerPage() {
   const navigate = useNavigate();
@@ -141,7 +141,7 @@ function PlannerPage() {
       <header className="border-b border-border bg-card/70">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-display text-2xl">
-            FUEL LAB
+            PLATE MATH
           </Link>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">

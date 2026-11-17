@@ -9,19 +9,21 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Fuel Lab — Macro-aware recipe box for endurance runners" },
+      { title: "Plate Math — Macro-aware recipe box for endurance runners" },
       {
         name: "description",
         content:
           "Set daily protein and carb goals by body weight, then paste a recipe link to get per-serving macros from USDA data.",
       },
-      { property: "og:title", content: "Fuel Lab — Macro-aware recipe box for endurance runners" },
+      { property: "og:title", content: "Plate Math — Macro-aware recipe box for endurance runners" },
       {
         property: "og:description",
         content: "Daily protein and carb goals plus per-serving recipe macros for endurance training.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://paceplate-macro-guide.lovable.app/app-preview.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://paceplate-macro-guide.lovable.app/app-preview.jpg" },
     ],
   }),
   component: Landing,
@@ -37,7 +39,7 @@ function Landing() {
   return (
     <main className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <span className="font-display text-2xl tracking-tight">FUEL LAB</span>
+        <span className="font-display text-2xl tracking-tight">PLATE MATH</span>
         <Link to="/plan" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-2 hover:underline">
           <CalendarDays className="size-4" aria-hidden /> Weekly plan
         </Link>

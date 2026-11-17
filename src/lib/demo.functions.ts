@@ -41,14 +41,14 @@ export const analyzeDemoRecipeUrl = createServerFn({ method: "POST" })
     );
 
     const page = await scrapeRecipePage(data.url);
-    const parsed = await parseRecipe(page.markdown, data.url);
+    const parsed = await parseRecipe(page.markdown, data.url, page.html);
     const { macros, source, matched, total } = await estimateMacros(parsed.ingredients, parsed.servings);
 
     return {
       draft: {
         title: parsed.title === "Untitled recipe" && page.title ? page.title.slice(0, 160) : parsed.title,
         source_url: data.url,
-        image_url: page.image,
+        image_url: parsed.image_url ?? page.image,
         category: parsed.category,
         dish_type: parsed.dish_type,
         prep_minutes: parsed.prep_minutes,

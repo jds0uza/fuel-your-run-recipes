@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Sparkles, UserCheck, ArrowRight } from "lucide-react";
@@ -11,11 +11,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
+  beforeLoad: () => {
+    // Temporarily redirect until accounts are shipped
+    throw redirect({ to: "/" });
+  },
   head: () => ({
     meta: [
-      { title: "Sign in — Fuel Lab" },
+      { title: "Sign in — Plate Math" },
       { name: "description", content: "Sign in to your private macro-aware recipe box for endurance training." },
-      { property: "og:title", content: "Sign in — Fuel Lab" },
+      { property: "og:title", content: "Sign in — Plate Math" },
       { property: "og:description", content: "Sign in to your private macro-aware recipe box." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -95,7 +99,7 @@ function AuthPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12">
       <Link to="/" className="font-display text-2xl">
-        FUEL LAB
+        PLATE MATH
       </Link>
       <div className="mt-6 w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-card">
         {/* Reviewer / Demo Access Box */}
@@ -105,7 +109,7 @@ function AuthPage() {
             Instant Demo Access
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Exploring Fuel Lab? Skip login to test the macro calculator, pre-analyzed recipes, and demo box.
+            Exploring Plate Math? Skip login to test the macro calculator, pre-analyzed recipes, and demo box.
           </p>
           <Button
             type="button"

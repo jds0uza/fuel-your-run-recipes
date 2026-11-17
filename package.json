@@ -1,5 +1,7 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "plate-math",
+  "description": "Macro-aware recipe analysis and weekly meal planner for endurance runners",
+  "license": "UNLICENSED",
   "private": true,
   "sideEffects": false,
   "type": "module",

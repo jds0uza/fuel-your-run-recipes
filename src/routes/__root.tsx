@@ -79,21 +79,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fuel Lab — Macro-aware recipe box for runners" },
+      { title: "Plate Math — Macro-aware recipe box for runners" },
       {
         name: "description",
         content:
           "Save recipes by category and see protein, carbs and protein-per-calorie for every dish.",
       },
-      { name: "author", content: "Fuel Lab" },
-      { property: "og:title", content: "Fuel Lab — Macro-aware recipe box for runners" },
+      { name: "author", content: "Plate Math" },
+      { property: "og:title", content: "Plate Math — Macro-aware recipe box for runners" },
       {
         property: "og:description",
         content:
           "Save recipes by category and see protein, carbs and protein-per-calorie for every dish.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://paceplate-macro-guide.lovable.app/app-preview.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Plate Math — Macro-aware recipe box for runners" },
+      {
+        name: "twitter:description",
+        content: "Save recipes by category and see protein, carbs and protein-per-calorie for every dish.",
+      },
+      { name: "twitter:image", content: "https://paceplate-macro-guide.lovable.app/app-preview.jpg" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

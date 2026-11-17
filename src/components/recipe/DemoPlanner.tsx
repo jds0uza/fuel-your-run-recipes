@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import type { Recipe } from "@/lib/recipes.functions";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const PLAN_KEY = "fuel-lab-demo-plan";
-const RECIPE_MIME = "application/x-fuel-lab-recipe";
-const ENTRY_MIME = "application/x-fuel-lab-entry";
+const PLAN_KEY = "plate-math-plan";
+const LEGACY_PLAN_KEY = "fuel-lab-demo-plan";
+const RECIPE_MIME = "application/x-plate-math-recipe";
+const ENTRY_MIME = "application/x-plate-math-entry";
 
 type Entry = { id: string; recipe_id: string; day: number };
 
@@ -21,7 +22,7 @@ export function DemoPlanner({ recipes }: { recipes: Recipe[] }) {
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(PLAN_KEY);
+      const saved = window.localStorage.getItem(PLAN_KEY) ?? window.localStorage.getItem(LEGACY_PLAN_KEY);
       if (saved) setEntries(JSON.parse(saved) as Entry[]);
     } catch {
       // ignore corrupted storage

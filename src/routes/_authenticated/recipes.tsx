@@ -33,12 +33,12 @@ import {
 export const Route = createFileRoute("/_authenticated/recipes")({
   head: () => ({
     meta: [
-      { title: "My recipe box — Fuel Lab" },
+      { title: "My recipe box — Plate Math" },
       {
         name: "description",
         content: "Your saved recipes with per-serving protein, carbs and protein-per-calorie.",
       },
-      { property: "og:title", content: "My recipe box — Fuel Lab" },
+      { property: "og:title", content: "My recipe box — Plate Math" },
       { property: "og:description", content: "Saved recipes with per-serving macros for training." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -118,7 +118,7 @@ function RecipesPage() {
       <header className="border-b border-border bg-card/70">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-display text-2xl">
-            FUEL LAB
+            PLATE MATH
           </Link>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
