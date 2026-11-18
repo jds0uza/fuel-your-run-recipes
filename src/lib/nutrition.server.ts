@@ -98,12 +98,12 @@ function parseFraction(s: string): number {
   const str = s.trim();
   if (str.includes(" ")) {
     const parts = str.split(/\s+/);
-    return (parseFloat(parts[0]) || 0) + parseFraction(parts[1] || "");
+    return (parseFloat(parts[0] ?? "") || 0) + parseFraction(parts[1] ?? "");
   }
   if (str.includes("/")) {
     const [num, den] = str.split("/");
-    const d = parseFloat(den);
-    return d ? (parseFloat(num) || 0) / d : 0;
+    const d = parseFloat(den ?? "");
+    return d ? (parseFloat(num ?? "") || 0) / d : 0;
   }
   return parseFloat(str) || 0;
 }
@@ -115,39 +115,39 @@ export function parseIngredientLine(raw: string): ParsedIngredient {
 
   // 1. Explicit grams / kg
   let m = text.match(/(\d+(?:\.\d+)?)\s*(?:g|gram|grams)\b/i);
-  if (m) grams = Math.round(parseFloat(m[1]));
+  if (m) grams = Math.round(parseFloat(m[1] ?? ""));
 
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?)\s*(?:kg|kilos?|kilograms?)\b/i);
-    if (m) grams = Math.round(parseFloat(m[1]) * 1000);
+    if (m) grams = Math.round(parseFloat(m[1] ?? "") * 1000);
   }
 
   // 2. Pounds / ounces
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:lbs?|pounds?)\b/i);
-    if (m) grams = Math.round(parseFraction(m[1]) * 453.6);
+    if (m) grams = Math.round(parseFraction(m[1] ?? "") * 453.6);
   }
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:oz|ounces?)\b/i);
-    if (m) grams = Math.round(parseFraction(m[1]) * 28.35);
+    if (m) grams = Math.round(parseFraction(m[1] ?? "") * 28.35);
   }
 
   // 3. Cups / Tbsp / Tsp / ml
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:cups?|c\.)\b/i);
-    if (m) grams = Math.round(parseFraction(m[1]) * 200);
+    if (m) grams = Math.round(parseFraction(m[1] ?? "") * 200);
   }
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:tbsp|tablespoons?|tbs)\b/i);
-    if (m) grams = Math.round(parseFraction(m[1]) * 15);
+    if (m) grams = Math.round(parseFraction(m[1] ?? "") * 15);
   }
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:tsp|teaspoons?)\b/i);
-    if (m) grams = Math.round(parseFraction(m[1]) * 5);
+    if (m) grams = Math.round(parseFraction(m[1] ?? "") * 5);
   }
   if (!grams) {
     m = text.match(/(\d+(?:\.\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s*(?:ml|milliliters?)\b/i);
-    if (m) grams = Math.round(parseFraction(m[1]));
+    if (m) grams = Math.round(parseFraction(m[1] ?? ""));
   }
 
   // Clean food name for search
@@ -217,12 +217,12 @@ function extractInstructions(instructionsRaw: unknown): string[] {
         if (cleaned.length > 0) out.push(cleaned.slice(0, 400));
       } else if (item && typeof item === "object") {
         const obj = item as Record<string, unknown>;
-        if (typeof obj.text === "string") {
-          out.push(obj.text.trim().slice(0, 400));
-        } else if (Array.isArray(obj.itemListElement)) {
-          for (const sub of obj.itemListElement) {
-            if (sub && typeof sub === "object" && typeof (sub as Record<string, unknown>).text === "string") {
-              out.push(String((sub as Record<string, unknown>).text).trim().slice(0, 400));
+        if (typeof obj["text"] === "string") {
+          out.push(obj["text"].trim().slice(0, 400));
+        } else if (Array.isArray(obj["itemListElement"])) {
+          for (const sub of obj["itemListElement"]) {
+            if (sub && typeof sub === "object" && typeof (sub as Record<string, unknown>)["text"] === "string") {
+              out.push(String((sub as Record<string, unknown>)["text"]).trim().slice(0, 400));
             }
           }
         }
@@ -237,7 +237,7 @@ function extractServings(yieldRaw: unknown): number {
   const text = Array.isArray(yieldRaw) ? yieldRaw.join(" ") : String(yieldRaw ?? "");
   const match = text.match(/(\d+)/);
   if (match) {
-    const n = parseInt(match[1], 10);
+    const n = parseInt(match[1] ?? "0", 10);
     if (n >= 1 && n <= 50) return n;
   }
   return 1;
@@ -247,8 +247,8 @@ function extractImageUrl(imageRaw: unknown): string | null {
   if (!imageRaw) return null;
   if (typeof imageRaw === "string") return imageRaw;
   if (Array.isArray(imageRaw) && typeof imageRaw[0] === "string") return imageRaw[0];
-  if (typeof imageRaw === "object" && typeof (imageRaw as Record<string, unknown>).url === "string") {
-    return (imageRaw as Record<string, unknown>).url as string;
+  if (typeof imageRaw === "object" && typeof (imageRaw as Record<string, unknown>)["url"] === "string") {
+    return (imageRaw as Record<string, unknown>)["url"] as string;
   }
   return null;
 }
@@ -260,7 +260,7 @@ export function parseJsonLdRecipe(html: string): ParsedRecipe | null {
   let match: RegExpExecArray | null;
 
   while ((match = scriptRegex.exec(html)) !== null) {
-    const content = match[1].trim();
+    const content = (match[1] ?? "").trim();
     if (!content) continue;
     try {
       const data = JSON.parse(content);
