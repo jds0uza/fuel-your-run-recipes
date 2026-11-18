@@ -128,7 +128,7 @@ export function RecipeLab() {
           ))}
         </div>
       </section>
-      <section id="try-it" className="mt-0 rounded-xl border border-primary/40 bg-card p-6 shadow-glow">
+      <section id="try-it" className="mt-12 rounded-xl border border-primary/40 bg-card p-6 shadow-glow sm:p-8">
         <h2 className="text-2xl">Try it live</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Paste a real recipe URL and watch the full pipeline run.{" "}
